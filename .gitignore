@@ -1,5 +1,28 @@
+# directories
+.settings/
+.vscode
+
+# supplemental files
+.cproject
+.dependencies
+.project
+apply-patches.sh
+*.BASE
+*.LOCAL
+*.REMOTE
+*~
+*.bak
+*.code-workspace
+*.new
+*.old
+*.orig
+*.rej
+*.sav
+*.tmp
+
+# compilation results
+*.a
+*.mo
 *.o
 *.pot
-.dependencies
-*.mo
 *.so

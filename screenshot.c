@@ -40,7 +40,7 @@ void cThreadScreenshot::Action(void) {
 
   // take pictures
   while (isOk && i < screenshotConfig.iNoOfPics) {
-    char fileName[100];
+    char fileName[256];
     FILE *fp;
     do {
       pnr++;
@@ -278,7 +278,7 @@ bool cPluginScreenshot::SetupParse(const char *Name, const char *Value) {
 
 void cPluginScreenshot::Replaying(const cControl *Control, const char *Name, const char *FileName, bool On) {
   if (Name)
-    strncpy(screenshotData.title, Name, sizeof(screenshotData.title));
+    strn0cpy(screenshotData.title, Name, sizeof(screenshotData.title));
   else
     strcpy(screenshotData.title, "screenshot");
   while (char *s= strchr(screenshotData.title, '/'))
@@ -288,7 +288,7 @@ void cPluginScreenshot::Replaying(const cControl *Control, const char *Name, con
 void cPluginScreenshot::OsdProgramme(time_t PresentTime, const char *PresentTitle, const char *PresentSubtitle, 
                                      time_t FollowingTime, const char *FollowingTitle, const char *FollowingSubtitle) {
   if (PresentTitle)
-    strncpy(screenshotData.title, PresentTitle, sizeof(screenshotData.title));
+    strn0cpy(screenshotData.title, PresentTitle, sizeof(screenshotData.title));
   else
     strcpy(screenshotData.title, "screenshot");
   while (char *s= strchr(screenshotData.title, '/'))
@@ -308,7 +308,7 @@ void cPluginScreenshot::SetVolume(int Volume, bool Absolute) {
 }
 
 void cPluginScreenshot::OsdTitle(const char *title) {
-   strncpy(screenshotData.osd_title, title, sizeof(screenshotData.osd_title));
+   strn0cpy(screenshotData.osd_title, title, sizeof(screenshotData.osd_title));
 }  
 
 void cPluginScreenshot::OsdClear() {

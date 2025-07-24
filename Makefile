@@ -16,6 +16,8 @@ VERSION = $(shell grep 'static const char \*VERSION *=' $(PLUGIN).h | awk '{ pri
 PKGCFG = $(if $(VDRDIR),$(shell pkg-config --variable=$(1) $(VDRDIR)/vdr.pc),$(shell pkg-config --variable=$(1) vdr || pkg-config --variable=$(1) ../../../vdr.pc))
 LIBDIR = $(DESTDIR)$(call PKGCFG,libdir)
 LOCDIR = $(DESTDIR)$(call PKGCFG,locdir)
+PLGCFG = $(call PKGCFG,plgcfg)
+#
 TMPDIR = /tmp
 
 ### The compiler options:
@@ -28,6 +30,10 @@ APIVERSION = $(call PKGCFG,apiversion)
 DOXYFILE = Doxyfile
 DOXYGEN  = doxygen
 
+### Allow user defined options to overwrite defaults:
+
+-include $(PLGCFG)
+
 ### The name of the distribution archive:
 
 ARCHIVE = $(PLUGIN)-$(VERSION)
@@ -38,6 +44,7 @@ SOFILE = libvdr-$(PLUGIN).so
 
 ### Includes and Defines (add further entries here):
 
+INCLUDES += -I$(call PKGCFG,incdir)
 DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
 ### The object files (add further files here):
@@ -56,15 +63,18 @@ I18Npot   = $(PODIR)/$(PLUGIN).pot
 all: $(SOFILE) i18n
 
 $(SOFILE): $(OBJS) 
-	$(CXX) $(CXXFLAGS) -shared $(OBJS) $(LDFLAGS) $(STATIC_LIBS) -o $@
+	@echo CC $@
+	$(Q)$(CXX) $(CXXFLAGS) -shared $(OBJS) $(LDFLAGS) $(STATIC_LIBS) -o $@
 	
 install-lib: $(SOFILE)
-	install -D $^ $(LIBDIR)/$^.$(APIVERSION)
+	@echo IN $(DESTDIR)$(LIBDIR)/$^.$(APIVERSION)
+	$(Q)install -D $^ $(DESTDIR)$(LIBDIR)/$^.$(APIVERSION)
 
 install: install-lib install-i18n
 
 %.o: %.c
-	$(CXX) $(CXXFLAGS) -c $(DEFINES) $(INCLUDES) $<
+	@echo CC $@
+	$(Q)$(CXX) $(CXXFLAGS) -c $(DEFINES) $(INCLUDES) $<
 
 dist: clean
 	@-rm -rf $(TMPDIR)/$(ARCHIVE)
@@ -79,20 +89,24 @@ clean:
 	@-rm -f $(OBJS) $(DEPFILE) *.so *.a *.tgz core* *~
 	
 %.mo: %.po
-	msgfmt -c -o $@ $<
+	@echo MO $@
+	$(Q)msgfmt -c -o $@ $<
 
 $(I18Npot): $(wildcard *.c)
-	xgettext -C -cTRANSLATORS --no-wrap -s --no-location -k -ktr -ktrNOOP -kI18N_NOOP \
+	@echo GT $@
+	$(Q)xgettext -C -cTRANSLATORS --no-wrap -s --no-location -k -ktr -ktrNOOP -kI18N_NOOP \
 	         --package-name=vdr-$(PLUGIN) --package-version=$(VERSION) --msgid-bugs-address='<vdr@joachim-wilke.de>' -o $@ `ls $^`
-	grep -v POT-Creation $(I18Npot) > $(I18Npot)~
-	mv $(I18Npot)~ $(I18Npot)
+	$(Q)grep -v POT-Creation $(I18Npot) > $(I18Npot)~
+	$(Q)mv $(I18Npot)~ $(I18Npot)
 
 %.po: $(I18Npot)
-	msgmerge -U --no-wrap --no-location --backup=none -q -N $@ $<
+	@echo PO $@
+	$(Q)msgmerge -U --no-wrap --no-location --backup=none -q -N $@ $<
 	@touch $@
 
 $(I18Nmsgs): $(LOCDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
-	install -D -m644 $< $@
+	@echo IN $@
+	$(Q)install -D -m644 $< $@
 
 i18n: $(I18Nmo) $(I18Npot)
 
